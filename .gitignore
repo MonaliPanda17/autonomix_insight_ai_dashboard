@@ -49,19 +49,16 @@ build/
 tmp/
 temp/
 
-# Ignore all README files
-README
-README.*
-readme
-readme.*
-
-# Ignore assignment PDFs (or any PDFs)
-*.pdf
-
-# Optional: ignore common dev artifacts
+# Python cache files
 __pycache__/
 *.pyc
-.env
+*.pyo
+*.pyd
+.Python
 
+# Assignment PDFs
+*.pdf
+
+# Documentation files (optional - remove if you want to keep them)
 DEPLOYMENT_GUIDE.md
 PRODUCTION_CONFIG.md
