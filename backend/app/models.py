@@ -21,7 +21,9 @@ class ActionItem(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     text: str = Field(..., description="Action item description")
     status: Literal["pending", "completed"] = Field(default="pending")
+    priority: Literal["high", "medium", "low"] = Field(default="medium", description="Priority level")
     createdAt: datetime = Field(default_factory=datetime.utcnow)
+    updatedAt: Optional[datetime] = None
     
     class Config:
         json_schema_extra = {
@@ -29,7 +31,9 @@ class ActionItem(BaseModel):
                 "id": "123e4567-e89b-12d3-a456-426614174000",
                 "text": "Prepare Q4 report",
                 "status": "pending",
-                "createdAt": "2024-01-15T10:30:00Z"
+                "priority": "high",
+                "createdAt": "2024-01-15T10:30:00Z",
+                "updatedAt": None
             }
         }
 

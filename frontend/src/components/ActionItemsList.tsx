@@ -1,15 +1,45 @@
 import React from 'react';
-import type { ActionItem } from '../types';
+import type { ActionItem, Priority } from '../types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { CheckCircle2, Circle, Trash2, ListTodo } from 'lucide-react';
+import { CheckCircle2, Circle, Trash2, ListTodo, AlertTriangle, Minus, ArrowDown } from 'lucide-react';
 
 interface ActionItemsListProps {
   actionItems: ActionItem[];
   onToggleComplete: (id: string) => void;
   onDelete: (id: string) => void;
 }
+
+// Helper function to get priority styling
+const getPriorityStyling = (priority: Priority) => {
+  switch (priority) {
+    case 'high':
+      return {
+        badge: 'bg-red-100 text-red-800 border-red-200',
+        icon: <AlertTriangle className="h-3 w-3" />,
+        label: 'High Priority'
+      };
+    case 'medium':
+      return {
+        badge: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        icon: <Minus className="h-3 w-3" />,
+        label: 'Medium Priority'
+      };
+    case 'low':
+      return {
+        badge: 'bg-green-100 text-green-800 border-green-200',
+        icon: <ArrowDown className="h-3 w-3" />,
+        label: 'Low Priority'
+      };
+    default:
+      return {
+        badge: 'bg-gray-100 text-gray-800 border-gray-200',
+        icon: <Minus className="h-3 w-3" />,
+        label: 'Medium Priority'
+      };
+  }
+};
 
 export const ActionItemsList: React.FC<ActionItemsListProps> = ({ 
   actionItems, 
@@ -86,6 +116,14 @@ export const ActionItemsList: React.FC<ActionItemsListProps> = ({
                     className="text-xs"
                   >
                     {item.status}
+                  </Badge>
+                  <Badge 
+                    className={`text-xs ${getPriorityStyling(item.priority).badge}`}
+                  >
+                    <div className="flex items-center gap-1">
+                      {getPriorityStyling(item.priority).icon}
+                      {item.priority}
+                    </div>
                   </Badge>
                   <span className="text-xs text-muted-foreground">
                     {new Date(item.createdAt).toLocaleDateString()}

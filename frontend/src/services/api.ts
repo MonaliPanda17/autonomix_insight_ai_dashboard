@@ -59,4 +59,40 @@ export const healthCheck = async () => {
   }
 };
 
+export const getAllActionItems = async (): Promise<TranscriptAnalysisResponse> => {
+  try {
+    const response = await api.get<TranscriptAnalysisResponse>('/api/action-items');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.detail || error.message);
+    }
+    throw new Error('Failed to fetch action items');
+  }
+};
+
+export const updateActionItem = async (itemId: string, updates: { status?: string; priority?: string }) => {
+  try {
+    const response = await api.put(`/api/action-items/${itemId}`, updates);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.detail || error.message);
+    }
+    throw new Error('Failed to update action item');
+  }
+};
+
+export const deleteActionItem = async (itemId: string) => {
+  try {
+    const response = await api.delete(`/api/action-items/${itemId}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.detail || error.message);
+    }
+    throw new Error('Failed to delete action item');
+  }
+};
+
 export default api;

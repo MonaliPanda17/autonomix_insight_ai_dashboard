@@ -1,15 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TranscriptForm } from './components/TranscriptForm';
 import { ActionItemsList } from './components/ActionItemsList';
 import { ProgressChart } from './components/ProgressChart';
-import type { ActionItem } from './types';
-import { analyzeTranscript } from './services/api';
+import { PriorityChart } from './components/PriorityChart';
+import { FilterAndSort } from './components/FilterAndSort';
+import type { ActionItem, FilterOptions, SortOptions } from './types';
+import { analyzeTranscript, getAllActionItems, updateActionItem, deleteActionItem } from './services/api';
 import { Brain, AlertCircle } from 'lucide-react';
 
 function App() {
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({});
+  const [sortOptions, setSortOptions] = useState<SortOptions>({ field: 'createdAt', direction: 'desc' });
+
+  // Load action items from database on component mount
+  useEffect(() => {
+    loadActionItems();
+  }, []);
+
+  const loadActionItems = async () => {
+    try {
+      const response = await getAllActionItems();
+      if (response.success) {
+        setActionItems(response.action_items);
+      }
+    } catch (err) {
+      console.error('Failed to load action items:', err);
+      // Don't show error to user for initial load, just log it
+    }
+  };
 
   const handleTranscriptSubmit = async (transcript: string) => {
     setIsLoading(true);
@@ -18,8 +39,8 @@ function App() {
     try {
       const response = await analyzeTranscript(transcript);
       if (response.success) {
-        // Add new action items to existing ones
-        setActionItems(prev => [...prev, ...response.action_items]);
+        // Reload all action items from database to get the latest data
+        await loadActionItems();
       } else {
         throw new Error('Failed to generate action items');
       }
@@ -32,22 +53,98 @@ function App() {
     }
   };
 
-  const handleToggleComplete = (id: string) => {
-    setActionItems(prev => 
-      prev.map(item => 
-        item.id === id 
-          ? { ...item, status: item.status === 'completed' ? 'pending' : 'completed' }
-          : item
-      )
-    );
+  const handleToggleComplete = async (id: string) => {
+    try {
+      const item = actionItems.find(item => item.id === id);
+      if (!item) return;
+
+      const newStatus = item.status === 'completed' ? 'pending' : 'completed';
+      
+      // Update in database
+      await updateActionItem(id, { status: newStatus });
+      
+      // Reload from database to get updated data
+      await loadActionItems();
+    } catch (err) {
+      console.error('Failed to update action item:', err);
+      setError('Failed to update action item. Please try again.');
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setActionItems(prev => prev.filter(item => item.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      // Delete from database
+      await deleteActionItem(id);
+      
+      // Reload from database to get updated data
+      await loadActionItems();
+    } catch (err) {
+      console.error('Failed to delete action item:', err);
+      setError('Failed to delete action item. Please try again.');
+    }
   };
 
   const clearError = () => {
     setError(null);
+  };
+
+  // Filter and sort logic
+  const getFilteredAndSortedItems = (items: ActionItem[]): ActionItem[] => {
+    let filtered = items;
+
+    // Apply filters
+    if (filterOptions.status) {
+      filtered = filtered.filter(item => item.status === filterOptions.status);
+    }
+    
+    if (filterOptions.priority) {
+      filtered = filtered.filter(item => item.priority === filterOptions.priority);
+    }
+    
+    if (filterOptions.search) {
+      const searchTerm = filterOptions.search.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.text.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortOptions.field) {
+        case 'createdAt':
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+        case 'priority':
+          const priorityOrder = { high: 3, medium: 2, low: 1 };
+          comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
+          break;
+        case 'status':
+          comparison = a.status.localeCompare(b.status);
+          break;
+        default:
+          comparison = 0;
+      }
+      
+      return sortOptions.direction === 'asc' ? comparison : -comparison;
+    });
+
+    return sorted;
+  };
+
+  const filteredAndSortedItems = getFilteredAndSortedItems(actionItems);
+
+  const handleFilterChange = (filters: FilterOptions) => {
+    setFilterOptions(filters);
+  };
+
+  const handleSortChange = (sort: SortOptions) => {
+    setSortOptions(sort);
+  };
+
+  const handleClearFilters = () => {
+    setFilterOptions({});
   };
 
   return (
@@ -100,10 +197,28 @@ function App() {
           </div>
         </div>
 
+        {/* Charts Row - Priority Chart */}
+        <div className="mb-6">
+          <PriorityChart actionItems={actionItems} />
+        </div>
+
+        {/* Filter and Sort */}
+        <div className="mb-4">
+          <FilterAndSort
+            filterOptions={filterOptions}
+            sortOptions={sortOptions}
+            onFilterChange={handleFilterChange}
+            onSortChange={handleSortChange}
+            onClearFilters={handleClearFilters}
+            totalItems={actionItems.length}
+            filteredCount={filteredAndSortedItems.length}
+          />
+        </div>
+
         {/* Action Items - Full Width Below */}
         <div className="mt-4">
           <ActionItemsList
-            actionItems={actionItems}
+            actionItems={filteredAndSortedItems}
             onToggleComplete={handleToggleComplete}
             onDelete={handleDelete}
           />
@@ -113,7 +228,7 @@ function App() {
         <footer className="text-center mt-8 text-sm text-gray-500">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/50 rounded-full backdrop-blur-sm">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-            <p>Built with React, FastAPI, and OpenAI • Level 1 Complete</p>
+            <p>Built with React, FastAPI, and OpenAI • Level 2 Complete</p>
           </div>
         </footer>
       </div>

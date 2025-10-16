@@ -30,9 +30,9 @@ class LLMService:
             List of ActionItem objects
         """
         try:
-            # Craft a detailed prompt for extracting action items
+            # Craft a detailed prompt for extracting action items with priority
             system_prompt = """You are an AI assistant that extracts actionable tasks from meeting transcripts.
-Your job is to identify clear, specific action items that need to be completed.
+Your job is to identify clear, specific action items that need to be completed and assign priority levels.
 
 Rules:
 - Extract only concrete, actionable tasks (things people need to do)
@@ -40,12 +40,20 @@ Rules:
 - Include who is responsible if mentioned
 - Include deadlines if mentioned
 - Don't include general discussion points or observations
-- Return ONLY a JSON array of strings, nothing else
-- Each string should be a complete action item
+- Assign priority levels: "high", "medium", or "low"
+- High priority: urgent tasks, deadlines, critical issues
+- Medium priority: important but not urgent tasks
+- Low priority: nice-to-have tasks, general improvements
+- Return ONLY a JSON array of objects, nothing else
+- Each object should have "text" and "priority" fields
 - If no action items are found, return an empty array []
 
 Example output format:
-["John will prepare the Q4 report by Friday", "Sarah to review marketing strategy", "Schedule follow-up meeting with client next week"]"""
+[
+  {"text": "John will prepare the Q4 report by Friday", "priority": "high"},
+  {"text": "Sarah to review marketing strategy", "priority": "medium"},
+  {"text": "Schedule follow-up meeting with client next week", "priority": "low"}
+]"""
 
             user_prompt = f"Extract action items from this meeting transcript:\n\n{transcript}"
             
@@ -67,8 +75,8 @@ Example output format:
             
             # Parse the JSON response
             try:
-                action_items_text = json.loads(content)
-                if not isinstance(action_items_text, list):
+                action_items_data = json.loads(content)
+                if not isinstance(action_items_data, list):
                     raise ValueError("Response is not a list")
             except json.JSONDecodeError:
                 logger.warning("Failed to parse JSON, attempting to extract from markdown")
@@ -77,13 +85,21 @@ Example output format:
                     content = content.split("```json")[1].split("```")[0].strip()
                 elif "```" in content:
                     content = content.split("```")[1].split("```")[0].strip()
-                action_items_text = json.loads(content)
+                action_items_data = json.loads(content)
             
             # Convert to ActionItem objects
             action_items = []
-            for item_text in action_items_text:
-                if isinstance(item_text, str) and item_text.strip():
-                    action_item = ActionItem(text=item_text.strip())
+            for item_data in action_items_data:
+                if isinstance(item_data, dict) and "text" in item_data:
+                    # New format with priority
+                    priority = item_data.get("priority", "medium")
+                    if priority not in ["high", "medium", "low"]:
+                        priority = "medium"  # Default fallback
+                    action_item = ActionItem(text=item_data["text"].strip(), priority=priority)
+                    action_items.append(action_item)
+                elif isinstance(item_data, str) and item_data.strip():
+                    # Fallback for old format (string only)
+                    action_item = ActionItem(text=item_data.strip(), priority="medium")
                     action_items.append(action_item)
             
             logger.info(f"Successfully extracted {len(action_items)} action items")
