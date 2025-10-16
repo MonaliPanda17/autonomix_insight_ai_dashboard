@@ -1,5 +1,5 @@
 import React from 'react';
-import type { FilterOptions, SortOptions, Priority, TaskStatus } from '../types';
+import type { FilterOptions, SortOptions, Priority } from '../types';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { 
