@@ -50,7 +50,6 @@ export const FilterAndSort: React.FC<FilterAndSortProps> = ({
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-4 mb-4">
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
-        
         {/* Search Input */}
         <div className="flex-1 min-w-0">
           <div className="relative">
