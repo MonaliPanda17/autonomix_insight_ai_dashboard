@@ -91,7 +91,6 @@ A smart dashboard application for AI-powered meeting transcript analysis and act
    ```env
    OPENAI_API_KEY=sk-your-openai-api-key-here
    ENVIRONMENT=development
-   FRONTEND_URL=http://localhost:5173
    SUPABASE_URL=https://your-project-ref.supabase.co
    SUPABASE_ANON_KEY=your-supabase-anon-key
    ```
