@@ -97,7 +97,7 @@ A smart dashboard application for AI-powered meeting transcript analysis and act
 
 5. **Start the backend server:**
    ```bash
-   python -m uvicorn app.main:app --reload --port 8000
+   python -m uvicorn app.main:app --reload --port 8000  (for development)
    ```
 
 ### Database Setup (Supabase)
