@@ -100,32 +100,6 @@ A smart dashboard application for AI-powered meeting transcript analysis and act
    python -m uvicorn app.main:app --reload --port 8000
    ```
 
-### Frontend Setup
-
-1. **Navigate to frontend directory:**
-   ```bash
-   cd ../frontend
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables:**
-   Create a `.env` file in the `frontend/` directory:
-   ```env
-   VITE_API_URL=http://localhost:8000
-   ```
-
-4. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-
-5. **Open your browser:**
-   Visit [http://localhost:5173](http://localhost:5173)
-
 ### Database Setup (Supabase)
 
 1. **Create a Supabase project** at [supabase.com](https://supabase.com)
@@ -157,54 +131,7 @@ A smart dashboard application for AI-powered meeting transcript analysis and act
        FOR EACH ROW 
        EXECUTE FUNCTION update_updated_at_column();
    ```
-
-## Testing
-
-The project includes comprehensive test coverage for the backend API and services.
-
-### Running Tests
-
-1. **Install test dependencies:**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
-
-2. **Run all tests:**
-   ```bash
-   pytest
-   ```
-
-3. **Run tests with verbose output:**
-   ```bash
-   pytest -v
-   ```
-
-4. **Run specific test files:**
-   ```bash
-   pytest tests/test_api.py
-   pytest tests/test_llm_service.py
-   pytest tests/test_database_service.py
-   ```
-
-5. **Run tests with coverage:**
-   ```bash
-   pytest --cov=app
-   ```
-
-### Test Structure
-
-- **`tests/test_api.py`** - API endpoint tests (health, transcript analysis, CRUD operations)
-- **`tests/test_llm_service.py`** - LLM service tests (OpenAI integration, action item extraction)
-- **`tests/test_database_service.py`** - Database service tests (Supabase operations)
-
-### Test Features
-
-- **Mocked Dependencies:** All external services (OpenAI, Supabase) are mocked for isolated testing
-- **Comprehensive Coverage:** Tests cover success cases, error cases, and edge cases
-- **Fast Execution:** Tests run quickly without external API calls
-- **CI/CD Ready:** Tests are configured for automated testing pipelines
-
+   
 ## Repository
 
 **GitHub:** [https://github.com/MonaliPanda17/autonomix_insight_ai_dashboard](https://github.com/MonaliPanda17/autonomix_insight_ai_dashboard)
